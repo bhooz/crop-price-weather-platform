@@ -1,0 +1,13 @@
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+venv/
+env/
+.venv/
+
+# Environment variables / Passwords
+.env
+config.json
+
+# Large data files 
+# data/
