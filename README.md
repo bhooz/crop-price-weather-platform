@@ -1,28 +1,93 @@
-# Crop Price & Weather Intelligence Platform for Sri Lankan Farmers
+# 🌾 Agricultural Data Platform & Price Prediction Dashboard
 
-An end-to-end data engineering, analytics, and software project designed to help smallholder farmers and agricultural stakeholders make informed decisions by combining market prices, weather data, and short-term forecasting[cite: 1, 2].
+A Data Science and Machine Learning web application that analyzes agricultural market prices alongside daily weather data, performs correlation analysis, trains a high-accuracy predictive model, and provides interactive real-time price forecasting.
 
-## 🚀 Project Overview
-Smallholder farmers often lack timely, trustworthy information on market prices and weather, leading them to sell at suboptimal times or markets while middlemen capture the margins[cite: 2]. This platform bridges that gap through automated data pipelines, exploratory analysis, time-series forecasting, and a bilingual (Sinhala/English) web dashboard[cite: 1, 2].
+---
 
-## 🛠️ Core Tech Stack
-* **Language:** Python[cite: 3]
-* **Database:** PostgreSQL[cite: 3]
-* **Backend API:** FastAPI[cite: 3]
-* **Frontend / Dashboard:** Next.js or Streamlit[cite: 3]
-* **Modeling:** statsmodels, Prophet, LightGBM / scikit-learn[cite: 3]
+## 🚀 Key Features
 
-## 📁 Repository Structure
-crop-price-platform/
-│
-├── data/           # Raw and processed datasets (gitignored if large)[cite: 5]
-├── ingestion/      # Data collection and scraping scripts[cite: 5]
-├── pipeline/       # Cleaning and database loading pipelines[cite: 5]
-├── notebooks/      # Exploratory Data Analysis (EDA) Jupyter notebooks[cite: 5]
-├── models/         # Forecasting models and evaluation scripts[cite: 5]
-├── api/            # FastAPI backend application[cite: 5]
-├── dashboard/      # Next.js or Streamlit frontend application[cite: 5]
-├── tests/          # Unit and integration tests[cite: 5]
-├── docs/           # Project documentation and case study[cite: 5]
-├── docker-compose.yml
-└── README.md
+- **Data Pipeline & Integration:** Merges historical crop market prices with daily weather data (temperature, rainfall, humidity) using PostgreSQL and SQLAlchemy.
+- **Exploratory Data Analysis (EDA):** Visualizes feature relationships and correlation heatmaps between weather indicators and crop pricing trends.
+- **Machine Learning Model:** Random Forest Regressor built with `scikit-learn`, achieving an **R² score of 0.88** and a low Mean Squared Error (MSE).
+- **Interactive Streamlit Dashboard (`app.py`):**
+  - Dynamic filters for markets and crops
+  - Real-time trend visualization and statistical metrics
+  - Weather sliders (temperature, rainfall, humidity) for instant **AI-powered price predictions**
+
+---
+
+## 🛠️ Tech Stack
+
+| Category | Tools |
+|---|---|
+| Language | Python |
+| Data Analysis | Pandas, NumPy |
+| Machine Learning | Scikit-Learn (Random Forest Regressor) |
+| Database & ORM | PostgreSQL, SQLAlchemy, Psycopg |
+| Visualization | Matplotlib, Seaborn, Streamlit native charts |
+| Web Framework | Streamlit |
+
+---
+
+## 📂 Project Structure
+
+```text
+Crop-Price-Weather-Platform/
+├── notebooks/          # Jupyter notebooks for EDA & ML experimentation
+├── app.py              # Main Streamlit dashboard application
+├── requirements.txt    # Project dependencies
+└── README.md           # Project documentation
+```
+
+---
+
+## ⚙️ Installation & Setup
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/crop-price-weather-platform.git
+cd crop-price-weather-platform
+```
+
+### 2. Install dependencies
+
+```bash
+pip install streamlit scikit-learn pandas numpy sqlalchemy "psycopg[binary]" seaborn matplotlib
+```
+
+Or, using the requirements file:
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Configure the database connection
+
+Open `app.py` and update the PostgreSQL connection string (`DB_URL`) with your credentials:
+
+```python
+DB_URL = "postgresql+psycopg://username:password@localhost:5432/your_database"
+```
+
+### 4. Run the dashboard
+
+```bash
+python -m streamlit run app.py
+```
+
+---
+
+## 📊 Model Performance
+
+| Metric | Value |
+|---|---|
+| Algorithm | Random Forest Regressor (`n_estimators=100`) |
+| R² Score | 0.88 |
+| Mean Squared Error (MSE) | 248.54 |
+
+---
+
+## 👨‍💻 Author
+
+Developed as an advanced agricultural analytics and machine learning solution.
