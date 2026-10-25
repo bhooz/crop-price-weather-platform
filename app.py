@@ -16,29 +16,21 @@ st.set_page_config(
 st.title("🌾 Agricultural Market Price Prediction & Analytics Platform")
 st.markdown("Analyze market trends, weather impacts, and predict crop prices interactively using Machine Learning.")
 
-# 2. Database Connection and Resource Loading
-DB_URL = "postgresql+psycopg://postgres:admin123@localhost:5432/cropPriceWeather_db"
+# 2. Resource Loading (Using CSV for Cloud Compatibility)
 
 @st.cache_resource
 def load_data_and_model():
     # Load trained machine learning model
     model = joblib.load('best_crop_price_model.pkl')
-    
-    # Load dataset from PostgreSQL
-    engine = create_engine(DB_URL)
-    query = """
-        SELECT 
-            p.date, p.price_avg, w.temp_max, w.temp_min, w.rain_mm, w.humidity, 
-            c.name_en AS crop_name, m.name AS market_name
-        FROM prices p
-        JOIN markets m ON p.market_id = m.market_id
-        JOIN crops c ON p.crop_id = c.crop_id
-        JOIN weather_daily w ON p.date = w.date AND 
-            w.location_id = 'mkt_0' || m.market_id || '_' || LOWER(m.name);
-    """
-    df = pd.read_sql(query, con=engine)
+
+    # Load dataset from CSV file (ready for cloud deployment)
+    df = pd.read_csv('agricultural_data.csv')
     df['date'] = pd.to_datetime(df['date'])
-    df['temp_mean'] = (df['temp_max'] + df['temp_min']) / 2
+
+    # Ensure temp_mean exists
+    if 'temp_mean' not in df.columns and 'temp_max' in df.columns and 'temp_min' in df.columns:
+        df['temp_mean'] = (df['temp_max'] + df['temp_min']) / 2
+        
     return model, df
 
 # Load model and data safely
