@@ -123,7 +123,7 @@ if not df_analysis.empty:
         st.divider()
 
     # 4. Organizing Dashboard into Clean Tabs
-    tab1, tab2, tab3 = st.tabs(["📈 Trends & Analytics", "🔮 Real-Time Predictor", "📋 Raw Data & Export"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📈 Trends & Analytics", "🔮 Real-Time Predictor", "📋 Raw Data & Export", "⚖️ Market Comparison"])
 
     # --- TAB 1: Trends & Analytics (With Creative Visuals) ---
     with tab1:
@@ -282,4 +282,86 @@ if not df_analysis.empty:
             file_name=f"{selected_crop}_{selected_market}_price_data.csv",
             mime="text/csv"
         )
+    # --- TAB 4: Market-to-Market Price Comparison ---
+    with tab4:
+        st.subheader(f"⚖️ Cross-Market Price Comparison for {selected_crop}")
+        st.markdown(
+            "Compare price variations across different economic centers to identify market arbitrage and price gaps."
+        )
+
+        # 1. Filter data for the selected crop across ALL markets
+        crop_all_markets_df = df_analysis[
+            df_analysis["crop_name"] == selected_crop
+        ]
+
+        if not crop_all_markets_df.empty:
+            # Group by Market and calculate Average Price
+            market_avg_df = (
+                crop_all_markets_df.groupby("market_name")["price_avg"]
+                .mean()
+                .reset_index()
+            )
+            market_avg_df = market_avg_df.sort_values(
+                by="price_avg", ascending=False
+            )
+
+            # Display Bar Chart Comparison
+            fig_market_comp = px.bar(
+                market_avg_df,
+                x="market_name",
+                y="price_avg",
+                color="market_name",
+                text_auto=".2f",
+                title=f"Average Market Price Comparison: {selected_crop} (LKR/kg)",
+                labels={
+                    "market_name": "Economic Center / Market",
+                    "price_avg": "Average Price (LKR)",
+                },
+                color_discrete_sequence=px.colors.qualitative.Purples_r,
+            )
+            fig_market_comp.update_layout(showlegend=False)
+            st.plotly_chart(fig_market_comp, use_container_width=True)
+
+            st.divider()
+
+            # Time Series Comparison Chart across Markets
+            st.markdown("### 📈 Price Trend Comparison Over Time")
+            fig_line_comp = px.line(
+                crop_all_markets_df,
+                x="date",
+                y="price_avg",
+                color="market_name",
+                markers=True,
+                title=f"Historical Price Trends Across All Markets for {selected_crop}",
+                labels={
+                    "date": "Date",
+                    "price_avg": "Price (LKR)",
+                    "market_name": "Market",
+                },
+            )
+            st.plotly_chart(fig_line_comp, use_container_width=True)
+
+            # Quick Highlights (Highest & Lowest Market)
+            highest_mkt = market_avg_df.iloc[0]
+            lowest_mkt = market_avg_df.iloc[-1]
+            diff_price = highest_mkt["price_avg"] - lowest_mkt["price_avg"]
+
+            col_m1, col_m2, col_m3 = st.columns(3)
+            col_m1.metric(
+                "Highest Priced Market",
+                highest_mkt["market_name"],
+                f"LKR {highest_mkt['price_avg']:.2f}",
+            )
+            col_m2.metric(
+                "Lowest Priced Market",
+                lowest_mkt["market_name"],
+                f"LKR {lowest_mkt['price_avg']:.2f}",
+            )
+            col_m3.metric("Maximum Price Gap", f"LKR {diff_price:.2f} /kg")
+        else:
+            st.warning("No market data available for the selected crop.")
+
+
+
+
 
