@@ -317,7 +317,7 @@ if not df_analysis.empty:
                     "market_name": "Economic Center / Market",
                     "price_avg": "Average Price (LKR)",
                 },
-                color_discrete_sequence=px.colors.qualitative.Purples_r,
+                color_discrete_sequence=px.colors.qualitative.Plotly,
             )
             fig_market_comp.update_layout(showlegend=False)
             st.plotly_chart(fig_market_comp, use_container_width=True)
