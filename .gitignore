@@ -11,3 +11,5 @@ config.json
 
 # Large data files 
 # data/
+
+.streamlit/secrets.toml

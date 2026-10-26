@@ -1,3 +1,4 @@
+import requests
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -40,6 +41,63 @@ try:
 except Exception as e:
     st.sidebar.error(f"Error loading resources: {e}")
     df_analysis = pd.DataFrame()
+
+# ----------------------------------------------------
+# 3. Sidebar - Multi-City Live Weather Integration
+# ----------------------------------------------------
+st.sidebar.markdown("---")
+st.sidebar.subheader("🌤️ Regional Live Weather")
+
+cities = {
+    "Dambulla": "Dambulla,LK",
+    "Nuwara Eliya": "Nuwara Eliya,LK",
+    "Colombo": "Colombo,LK",
+    "Kandy": "Kandy,LK",
+    "Anuradhapura": "Anuradhapura,LK",
+}
+
+selected_city = st.sidebar.selectbox("Select City", list(cities.keys()))
+
+@st.cache_data(ttl=600)
+def get_city_weather(city_query):
+    
+    api_key = st.secrets["3dd9a73bb6b103f5d237162d6c8a7673"]
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={city_query}&appid={api_key}&units=metric"
+
+    try:
+        response = requests.get(
+            url, 
+            params={"q": city_query, "appid": api_key, "units": "metric"},
+            timeout=10
+        )
+        if response.status_code == 200:
+            data = response.json()
+            temp = data["main"]["temp"]
+            humidity = data["main"]["humidity"]
+            weather_desc = data["weather"][0]["description"].capitalize()
+            wind_speed = data["wind"]["speed"]
+            return temp, humidity, weather_desc, wind_speed
+        st.sidebar.caption(f"Weather API Error: {response.status_code} - {response.reason}")
+    except Exception as e:
+        st.sidebar.caption(f"Error request failed: {e}")
+    return None, None, None, None
+
+
+temp, humidity, weather_desc, wind_speed = get_city_weather(
+    cities[selected_city]
+)
+
+if temp is not None:
+    st.sidebar.metric(
+        label=f"Temperature ({selected_city})", value=f"{temp}°C"
+    )
+    st.sidebar.metric(label="Humidity", value=f"{humidity}%")
+    st.sidebar.markdown(f"**Conditions:** {weather_desc}")
+    st.sidebar.markdown(f"**Wind Speed:** {wind_speed} m/s")
+else:
+    st.sidebar.warning(
+        "Could not fetch weather data. Please check your OpenWeatherMap API Key."
+    )
 
 # 3. Sidebar Filters for Interactive Experience
 st.sidebar.header("🎛️ Filter Options")
@@ -224,3 +282,4 @@ if not df_analysis.empty:
             file_name=f"{selected_crop}_{selected_market}_price_data.csv",
             mime="text/csv"
         )
+
