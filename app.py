@@ -123,7 +123,7 @@ if not df_analysis.empty:
         st.divider()
 
     # 4. Organizing Dashboard into Clean Tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["📈 Trends & Analytics", "🔮 Real-Time Predictor", "📋 Raw Data & Export", "⚖️ Market Comparison"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📈 Trends & Analytics", "🔮 Real-Time Predictor", "📋 Raw Data & Export", "⚖️ Market Comparison", "📅 Multi-Day Forecast"])
 
     # --- TAB 1: Trends & Analytics (With Creative Visuals) ---
     with tab1:
@@ -360,6 +360,131 @@ if not df_analysis.empty:
             col_m3.metric("Maximum Price Gap", f"LKR {diff_price:.2f} /kg")
         else:
             st.warning("No market data available for the selected crop.")
+
+    # --- TAB 5: Multi-Day Price Forecasting ---
+with tab5:
+    st.subheader(
+        f"📅 Multi-Day Price Forecasting for {selected_crop} ({selected_market})"
+    )
+    st.markdown(
+        "Forecast future crop prices for the next few days using recursive machine learning projection based on historical lags and trends."
+    )
+
+    forecast_days = st.slider(
+        "Select Forecast Horizon (Days)", min_value=3, max_value=14, value=7
+    )
+
+    if st.button("Generate Multi-Day Forecast", type="primary"):
+        if not filtered_df.empty:
+            # Get the latest row as starting point
+            last_row = filtered_df.iloc[-1].copy()
+            last_date = last_row["date"]
+
+            # We need historical prices for lags
+            recent_prices = filtered_df["price_avg"].tolist()
+
+            forecast_results = []
+            current_date = last_date
+
+            # Get current weather from live weather or last row
+            base_temp = (
+                temp if temp is not None else last_row.get("temp_mean", 28.0)
+            )
+            base_humidity = (
+                humidity if humidity is not None else last_row.get("humidity", 75.0)
+            )
+            base_rain = last_row.get("rain_mm", 5.0)
+
+            for i in range(1, forecast_days + 1):
+                current_date += pd.Timedelta(days=1)
+
+                # Lags calculation
+                lag_1 = recent_prices[-1]
+                lag_7 = (
+                    recent_prices[-7]
+                    if len(recent_prices) >= 7
+                    else recent_prices[0]
+                )
+
+                # Feature vector matching model training columns
+                input_features = pd.DataFrame(
+                    [[
+                        base_temp,
+                        base_rain,
+                        base_humidity,
+                        current_date.month,
+                        current_date.dayofweek,
+                        current_date.dayofyear,
+                        lag_1,
+                        lag_7,
+                        base_temp,
+                        base_rain * 7,
+                    ]],
+                    columns=[
+                        "temp_mean",
+                        "rain_mm",
+                        "humidity",
+                        "month",
+                        "day_of_week",
+                        "day_of_year",
+                        "price_lag_1",
+                        "price_lag_7",
+                        "temp_rolling_mean_7",
+                        "rain_rolling_sum_7",
+                    ],
+                )
+
+                pred_price = model.predict(input_features)[0]
+                recent_prices.append(pred_price)
+
+                forecast_results.append({
+                    "date": current_date,
+                    "predicted_price (LKR)": round(pred_price, 2),
+                    "market_name": selected_market,
+                    "crop_name": selected_crop,
+                })
+
+            forecast_df = pd.DataFrame(forecast_results)
+
+            # Display Forecast Table
+            st.success(
+                f"Successfully generated {forecast_days}-day price forecast!"
+            )
+            st.dataframe(forecast_df, use_container_width=True)
+
+            # Plot Combined Historical (Last 10 days) + Forecast
+            historical_subset = filtered_df.tail(10)[
+                ["date", "price_avg", "market_name", "crop_name"]
+            ].rename(columns={"price_avg": "predicted_price (LKR)"})
+            historical_subset["Type"] = "Historical"
+
+            forecast_plot_df = forecast_df.copy()
+            forecast_plot_df["Type"] = "Forecast"
+
+            combined_plot_df = pd.concat(
+                [historical_subset, forecast_plot_df], ignore_index=True
+            )
+
+            fig_forecast = px.line(
+                combined_plot_df,
+                x="date",
+                y="predicted_price (LKR)",
+                color="Type",
+                markers=True,
+                title=f"{forecast_days}-Day Price Trend & Forecast for {selected_crop} ({selected_market})",
+                labels={
+                    "date": "Date",
+                    "predicted_price (LKR)": "Price (LKR / kg)",
+                },
+                color_discrete_map={
+                    "Historical": "#6c5ce7",
+                    "Forecast": "#00b894",
+                },
+            )
+            st.plotly_chart(fig_forecast, use_container_width=True)
+        else:
+            st.warning("No data available for forecasting.")
+
 
 
 
