@@ -61,7 +61,7 @@ selected_city = st.sidebar.selectbox("Select City", list(cities.keys()))
 @st.cache_data(ttl=600)
 def get_city_weather(city_query):
     
-    api_key = st.secrets["openweathermap_api_key"]
+    api_key = st.secrets["OPENWEATHER_API_KEY"]
     url = f"https://api.openweathermap.org/data/2.5/weather?q={city_query}&appid={api_key}&units=metric"
 
     try:
