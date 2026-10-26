@@ -123,7 +123,7 @@ if not df_analysis.empty:
         st.divider()
 
     # 4. Organizing Dashboard into Clean Tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📈 Trends & Analytics", "🔮 Real-Time Predictor", "📋 Raw Data & Export", "⚖️ Market Comparison", "📅 Multi-Day Forecast"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📈 Trends & Analytics", "🔮 Real-Time Predictor", "📋 Raw Data & Export", "⚖️ Market Comparison", "📅 Multi-Day Forecast", "⚠️ Weather Advisory & Risks"])
 
     # --- TAB 1: Trends & Analytics (With Creative Visuals) ---
     with tab1:
@@ -484,6 +484,116 @@ with tab5:
             st.plotly_chart(fig_forecast, use_container_width=True)
         else:
             st.warning("No data available for forecasting.")
+
+    # --- TAB 6: Weather Advisory & Risk Alert System ---
+with tab6:
+    st.subheader(
+        f"⚠️ Smart Weather Advisory & Risk Alert System for {selected_crop}"
+    )
+    st.markdown(
+        "Real-time risk assessment and agricultural advisory based on current live weather conditions and market trends."
+    )
+
+    if temp is not None:
+        # Display Current Weather Card for context
+        col_w1, col_w2, col_w3 = st.columns(3)
+        col_w1.metric(
+            f"Live Temp ({selected_city})",
+            f"{temp}°C",
+            delta="Normal" if 20 <= temp <= 32 else "Extreme",
+        )
+        col_w2.metric(f"Live Humidity", f"{humidity}%")
+        col_w3.metric(f"Weather Condition", f"{weather_desc}")
+
+        st.divider()
+
+        # Risk Analysis Logic based on Weather & Crop Type
+        st.markdown("### 🔍 Automated Risk & Price Impact Analysis")
+
+        risk_score = 0
+        risk_messages = []
+        advisory_tips = []
+
+        # Temperature Risks
+        if temp > 33:
+            risk_score += 2
+            risk_messages.append(
+                "🔥 **High Temperature Alert:** Excessive heat may cause crop stress, rapid moisture loss, and potential supply shortages, pushing market prices upward."
+            )
+            advisory_tips.append(
+                "Ensure adequate irrigation schedules during early morning or late evening."
+            )
+        elif temp < 18:
+            risk_score += 1
+            risk_messages.append(
+                "❄️ **Low Temperature / Upcountry Chill:** Unseasonable cold can slow down ripening or harvesting schedules."
+            )
+            advisory_tips.append(
+                "Monitor for frost or cold-induced growth stunting in sensitive crops."
+            )
+        else:
+            risk_messages.append(
+                "✅ **Temperature Status:** Favorable temperature range for normal crop growth."
+            )
+
+        # Humidity / Rain Risks
+        if humidity > 85:
+            risk_score += 2
+            risk_messages.append(
+                "💧 **High Humidity / Fungal Risk:** High moisture levels significantly increase the risk of fungal infections (e.g., blight, root rot) and post-harvest spoilage during transport."
+            )
+            advisory_tips.append(
+                "Apply preventive organic fungicides if necessary and ensure well-ventilated storage."
+            )
+        else:
+            risk_messages.append(
+                "✅ **Humidity Status:** Humidity levels are within acceptable operational limits."
+            )
+
+        # Display Alerts based on Risk Score
+        if risk_score >= 3:
+            st.error(
+                "🚨 **HIGH RISK ALERT:** Current weather conditions pose a significant threat to crop yield or transport logistics. Expect price volatility!"
+            )
+        elif risk_score == 1 or risk_score == 2:
+            st.warning(
+                "⚠️ **MODERATE ADVISORY:** Minor weather anomalies detected. Keep a close eye on market price fluctuations."
+            )
+        else:
+            st.success(
+                "✨ **OPTIMAL CONDITIONS:** Current weather conditions are highly favorable for stable agricultural supply and pricing."
+            )
+
+        # Show detailed messages
+        st.markdown("#### 📋 Weather Impact Details:")
+        for msg in risk_messages:
+            st.markdown(f"- {msg}")
+
+        st.markdown("---")
+        st.markdown(
+            "#### 💡 Expert Recommendations & Actionable Advisory Tips:"
+        )
+        if advisory_tips:
+            for tip in advisory_tips:
+                st.info(f"💡 {tip}")
+        else:
+            st.success(
+                "💡 Standard farming and storage practices are sufficient under current conditions."
+            )
+
+        # Price volatility warning based on historical average
+        if not filtered_df.empty:
+            avg_historical = filtered_df["price_avg"].mean()
+            st.markdown("---")
+            st.markdown("### 📊 Market Price Context")
+            st.markdown(
+                f"The historical average price for **{selected_crop}** in **{selected_market}** is **LKR {avg_historical:.2f} /kg**. Given the current weather conditions in **{selected_city}**, short-term price fluctuations of $\\pm 5\\%-10\\%$ may occur."
+            )
+    else:
+        st.warning(
+            "⚠️ Live weather data could not be fetched. Please verify your OpenWeatherMap API key in the sidebar configuration to enable live risk advisories."
+        )
+
 
 
 
