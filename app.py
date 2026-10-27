@@ -596,152 +596,152 @@ with tab6:
         )
 
     # --- TAB 7: Automated PDF Report Generator ---
-        with tab7:
-            st.subheader("📄 Automated PDF Report Generator")
-            st.markdown(
-                "Generate and download an official summary report including price metrics, market comparisons, live weather, and predictions."
+    with tab7:
+        st.subheader("📄 Automated PDF Report Generator")
+        st.markdown(
+            "Generate and download an official summary report including price metrics, market comparisons, live weather, and predictions."
+        )
+    
+        def create_pdf_report(
+            crop, market, avg_p, max_p, min_p, city_name, city_temp, city_hum
+        ):
+            pdf = FPDF()
+            pdf.add_page()
+    
+            # Header Title
+            pdf.set_font("Arial", "B", 16)
+            pdf.set_text_color(108, 92, 231)
+            pdf.cell(
+                0,
+                10,
+                "Sri Lanka Agricultural Market & Weather Analytics Report",
+                ln=True,
+                align="C",
             )
+            pdf.set_font("Arial", "I", 10)
+            pdf.set_text_color(100, 100, 100)
+            pdf.cell(
+                0,
+                10,
+                "Generated via Agricultural Data Platform",
+                ln=True,
+                align="C",
+            )
+            pdf.ln(5)
     
-            def create_pdf_report(
-                crop, market, avg_p, max_p, min_p, city_name, city_temp, city_hum
-            ):
-                pdf = FPDF()
-                pdf.add_page()
+            # Target Crop & Market Summary
+            pdf.set_font("Arial", "B", 12)
+            pdf.set_text_color(0, 0, 0)
+            pdf.cell(0, 8, "1. Target Selection Summary", ln=True)
+            pdf.set_font("Arial", "", 10)
+            pdf.cell(0, 6, f" - Selected Crop: {crop}", ln=True)
+            pdf.cell(0, 6, f" - Selected Market Center: {market}", ln=True)
+            pdf.cell(0, 6, f" - Weather Region: {city_name}", ln=True)
+            pdf.ln(4)
     
-                # Header Title
-                pdf.set_font("Arial", "B", 16)
-                pdf.set_text_color(108, 92, 231)
+            # Historical Price Key Indicators
+            pdf.set_font("Arial", "B", 12)
+            pdf.cell(0, 8, "2. Historical Price Indicators (LKR/kg)", ln=True)
+            pdf.set_font("Arial", "", 10)
+            pdf.cell(0, 6, f" - Average Price: LKR {avg_p:.2f}", ln=True)
+            pdf.cell(0, 6, f" - Highest Recorded Price: LKR {max_p:.2f}", ln=True)
+            pdf.cell(0, 6, f" - Lowest Recorded Price: LKR {min_p:.2f}", ln=True)
+            pdf.ln(4)
+    
+            # Live Regional Weather Summary
+            pdf.set_font("Arial", "B", 12)
+            pdf.cell(
+                0, 8, f"3. Live Regional Weather Context ({city_name})", ln=True
+            )
+            pdf.set_font("Arial", "", 10)
+            if city_temp is not None:
+                pdf.cell(0, 6, f" - Temperature: {city_temp}°C", ln=True)
+                pdf.cell(0, 6, f" - Humidity: {city_hum}%", ln=True)
+            else:
                 pdf.cell(
                     0,
-                    10,
-                    "Sri Lanka Agricultural Market & Weather Analytics Report",
+                    6,
+                    " - Live Weather Data: Not Available / API Offline",
                     ln=True,
-                    align="C",
                 )
-                pdf.set_font("Arial", "I", 10)
-                pdf.set_text_color(100, 100, 100)
-                pdf.cell(
-                    0,
-                    10,
-                    "Generated via Agricultural Data Platform",
-                    ln=True,
-                    align="C",
-                )
-                pdf.ln(5)
-    
-                # Target Crop & Market Summary
-                pdf.set_font("Arial", "B", 12)
-                pdf.set_text_color(0, 0, 0)
-                pdf.cell(0, 8, "1. Target Selection Summary", ln=True)
-                pdf.set_font("Arial", "", 10)
-                pdf.cell(0, 6, f" - Selected Crop: {crop}", ln=True)
-                pdf.cell(0, 6, f" - Selected Market Center: {market}", ln=True)
-                pdf.cell(0, 6, f" - Weather Region: {city_name}", ln=True)
-                pdf.ln(4)
-    
-                # Historical Price Key Indicators
-                pdf.set_font("Arial", "B", 12)
-                pdf.cell(0, 8, "2. Historical Price Indicators (LKR/kg)", ln=True)
-                pdf.set_font("Arial", "", 10)
-                pdf.cell(0, 6, f" - Average Price: LKR {avg_p:.2f}", ln=True)
-                pdf.cell(0, 6, f" - Highest Recorded Price: LKR {max_p:.2f}", ln=True)
-                pdf.cell(0, 6, f" - Lowest Recorded Price: LKR {min_p:.2f}", ln=True)
-                pdf.ln(4)
-    
-                # Live Regional Weather Summary
-                pdf.set_font("Arial", "B", 12)
-                pdf.cell(
-                    0, 8, f"3. Live Regional Weather Context ({city_name})", ln=True
-                )
-                pdf.set_font("Arial", "", 10)
-                if city_temp is not None:
-                    pdf.cell(0, 6, f" - Temperature: {city_temp}°C", ln=True)
-                    pdf.cell(0, 6, f" - Humidity: {city_hum}%", ln=True)
-                else:
-                    pdf.cell(
-                        0,
-                        6,
-                        " - Live Weather Data: Not Available / API Offline",
-                        ln=True,
-                    )
-                pdf.ln(4)
+            pdf.ln(4)
     
                 # Multi-Day Forecast Table (If Available)
-                pdf.set_font("Arial", "B", 12)
-                pdf.cell(0, 8, "4. Multi-Day Forecast Summary", ln=True)
-                pdf.set_font("Arial", "", 10)
+            pdf.set_font("Arial", "B", 12)
+            pdf.cell(0, 8, "4. Multi-Day Forecast Summary", ln=True)
+            pdf.set_font("Arial", "", 10)
     
-                if "latest_forecast_df" in st.session_state:
-                    f_df = st.session_state["latest_forecast_df"]
-                    pdf.cell(
-                        0,
-                        6,
-                        f"Showing generated {len(f_df)}-day forecasted prices:",
-                        ln=True,
-                    )
-                    pdf.ln(2)
-    
-                    # Table Header
-                    pdf.set_font("Arial", "B", 9)
-                    pdf.cell(50, 6, "Date", border=1)
-                    pdf.cell(50, 6, "Forecasted Price (LKR)", border=1, ln=True)
-    
-                    pdf.set_font("Arial", "", 9)
-                    for idx, row in f_df.iterrows():
-                        pdf.cell(50, 6, str(row["date"]), border=1)
-                        pdf.cell(
-                            50,
-                            6,
-                            f"LKR {row['predicted_price (LKR)']:.2f}",
-                            border=1,
-                            ln=True,
-                        )
-                else:
-                    pdf.cell(
-                        0,
-                        6,
-                        " - Note: Generate a Multi-Day Forecast in Tab 5 to include prediction table.",
-                        ln=True,
-                    )
-    
-                pdf.ln(10)
-                pdf.set_font("Arial", "I", 8)
+            if "latest_forecast_df" in st.session_state:
+                f_df = st.session_state["latest_forecast_df"]
                 pdf.cell(
                     0,
-                    5,
-                    "Confidential Agricultural Analytics Report - Developed for Decision Support.",
-                    align="C",
+                    6,
+                    f"Showing generated {len(f_df)}-day forecasted prices:",
+                    ln=True,
                 )
+                pdf.ln(2)
     
-                # Return bytes output safely
-                return bytes(pdf.output())
+                # Table Header
+                pdf.set_font("Arial", "B", 9)
+                pdf.cell(50, 6, "Date", border=1)
+                pdf.cell(50, 6, "Forecasted Price (LKR)", border=1, ln=True)
     
-            # Generate & Download Trigger
-            if not filtered_df.empty:
-                avg_p_val = filtered_df["price_avg"].mean()
-                max_p_val = filtered_df["price_avg"].max()
-                min_p_val = filtered_df["price_avg"].min()
-    
-                pdf_bytes = create_pdf_report(
-                    selected_crop,
-                    selected_market,
-                    avg_p_val,
-                    max_p_val,
-                    min_p_val,
-                    selected_city,
-                    temp,
-                    humidity,
-                )
-    
-                st.download_button(
-                    label="📥 Download Official Analytics PDF Report",
-                    data=pdf_bytes,
-                    file_name=f"{selected_crop}_{selected_market}_Analytics_Report.pdf",
-                    mime="application/pdf",
-                    type="primary",
-                )
+                pdf.set_font("Arial", "", 9)
+                for idx, row in f_df.iterrows():
+                    pdf.cell(50, 6, str(row["date"]), border=1)
+                    pdf.cell(
+                        50,
+                        6,
+                        f"LKR {row['predicted_price (LKR)']:.2f}",
+                        border=1,
+                        ln=True,
+                    )
             else:
-                st.warning("Please select a crop and market with available data.")
+                pdf.cell(
+                    0,
+                    6,
+                    " - Note: Generate a Multi-Day Forecast in Tab 5 to include prediction table.",
+                    ln=True,
+                )
+    
+            pdf.ln(10)
+            pdf.set_font("Arial", "I", 8)
+            pdf.cell(
+                0,
+                5,
+                "Confidential Agricultural Analytics Report - Developed for Decision Support.",
+                align="C",
+            )
+    
+            # Return bytes output safely
+            return bytes(pdf.output())
+    
+        # Generate & Download Trigger
+        if not filtered_df.empty:
+            avg_p_val = filtered_df["price_avg"].mean()
+            max_p_val = filtered_df["price_avg"].max()
+            min_p_val = filtered_df["price_avg"].min()
+    
+            pdf_bytes = create_pdf_report(
+                selected_crop,
+                selected_market,
+                avg_p_val,
+                max_p_val,
+                min_p_val,
+                selected_city,
+                temp,
+                humidity,
+            )
+    
+            st.download_button(
+                label="📥 Download Official Analytics PDF Report",
+                data=pdf_bytes,
+                file_name=f"{selected_crop}_{selected_market}_Analytics_Report.pdf",
+                mime="application/pdf",
+                type="primary",
+            )
+        else:
+            st.warning("Please select a crop and market with available data.")
 
 
 
