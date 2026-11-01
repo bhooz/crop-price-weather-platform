@@ -124,7 +124,7 @@ if not df_analysis.empty:
         st.divider()
 
     # 4. Organizing Dashboard into Clean Tabs
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["📈 Trends & Analytics", "🔮 Real-Time Predictor", "📋 Raw Data & Export", "⚖️ Market Comparison", "📅 Multi-Day Forecast", "⚠️ Weather Advisory & Risks", "📄 PDF Report Generator"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs(["📈 Trends & Analytics", "🔮 Real-Time Predictor", "📋 Raw Data & Export", "⚖️ Market Comparison", "📅 Multi-Day Forecast", "⚠️ Weather Advisory & Risks", "📄 PDF Report Generator", "💰 Profitability Calculator", "🗓️ Monthly Seasonality"])
 
     # --- TAB 1: Trends & Analytics (With Creative Visuals) ---
     with tab1:
@@ -742,6 +742,94 @@ with tab6:
             )
         else:
             st.warning("Please select a crop and market with available data.")
+
+    with tab8:
+        st.subheader(
+        f"💰 Crop Profitability & Revenue Calculator for {selected_crop}"
+        )
+        st.markdown(
+        "Estimate your expected gross revenue, total cultivation costs, and net profit based on current market prices and yield expectations."
+        )
+
+        col_c1, col_c2 = st.columns(2)
+
+        with col_c1:
+            st.markdown("### 🌾 Cultivation & Yield Inputs")
+            farm_size_acres = st.number_input(
+                "Farm Size (Acres)", min_value=0.5, max_value=50.0, value=2.0, step=0.5
+            )
+            avg_yield_per_acre = st.number_input(
+                "Estimated Yield per Acre (kg)",
+                min_value=100,
+                max_value=10000,
+                value=1500,
+                step=100,
+            )
+            est_production_cost_per_acre = st.number_input(
+                "Estimated Cost per Acre (LKR)",
+                min_value=10000,
+                max_value=500000,
+                value=75000,
+                step=5000,
+            )
+
+        with col_c2:
+            st.markdown("### 📊 Financial Price Benchmark")
+        # Get current or predicted price benchmark
+            if not filtered_df.empty:
+                current_market_price = filtered_df["price_avg"].iloc[-1]
+            else:
+                current_market_price = 150.0
+
+            selling_price_per_kg = st.number_input(
+                "Expected Selling Price per kg (LKR)",
+                min_value=10.0,
+                max_value=2000.0,
+                value=float(current_market_price),
+                step=5.0,
+            )
+
+        st.divider()
+
+        # Calculations
+        total_yield_kg = farm_size_acres * avg_yield_per_acre
+        total_gross_revenue = total_yield_kg * selling_price_per_kg
+        total_cultivation_cost = farm_size_acres * est_production_cost_per_acre
+        net_profit = total_gross_revenue - total_cultivation_cost
+        roi = (
+            (net_profit / total_cultivation_cost) * 100
+            if total_cultivation_cost > 0
+            else 0
+        )
+
+        st.markdown("### 📈 Financial Summary & Projections")
+        col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+        col_m1.metric("Total Expected Yield", f"{total_yield_kg:,.0f} kg")
+        col_m2.metric(
+            "Gross Revenue", f"LKR {total_gross_revenue:,.2f}", delta="Estimated"
+        )
+        col_m3.metric(
+            "Total Cultivation Cost", f"LKR {total_cultivation_cost:,.2f}"
+        )
+        col_m4.metric(
+            "Net Profit",
+            f"LKR {net_profit:,.2f}",
+            delta=f"ROI: {roi:.1f}%",
+            delta_color="normal" if net_profit >= 0 else "inverse",
+        )
+
+        if net_profit > 0:
+            st.success(
+                f"💡 **Profitable Venture:** Cultivating **{selected_crop}** across **{farm_size_acres} acres** shows a projected net profit of **LKR {net_profit:,.2f}** with an estimated return on investment (ROI) of **{roi:.1f}%**."
+            )
+        else:
+            st.warning(
+                "⚠️ **High Risk / Loss Warning:** Projected costs exceed expected revenue under current pricing. Consider optimizing input costs or targeting higher-value markets."
+            )
+
+
+
+
 
 
 
