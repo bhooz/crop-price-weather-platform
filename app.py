@@ -714,7 +714,10 @@ with tab6:
             )
     
             # Return bytes output safely
-            return bytes(pdf.output())
+            pdf_output = pdf.output(dest="S")
+            if isinstance(pdf_output, str):
+                return pdf_output.encode("latin1")
+            return bytes(pdf_output)
     
         # Generate & Download Trigger
         if not filtered_df.empty:
@@ -743,6 +746,7 @@ with tab6:
         else:
             st.warning("Please select a crop and market with available data.")
 
+    # --- TAB 8: Crop Profitability & Revenue Calculator ---
     with tab8:
         st.subheader(
         f"💰 Crop Profitability & Revenue Calculator for {selected_crop}"
@@ -826,6 +830,100 @@ with tab6:
             st.warning(
                 "⚠️ **High Risk / Loss Warning:** Projected costs exceed expected revenue under current pricing. Consider optimizing input costs or targeting higher-value markets."
             )
+
+    # --- TAB 9: Monthly Seasonality & Price Heatmap ---
+with tab9:
+    st.subheader(
+        f"🗓️ Monthly Price Seasonality & Heatmap Analysis for {selected_crop}"
+    )
+    st.markdown(
+        "Analyze historical monthly price patterns and seasonal trends across economic centers to identify the best months for harvesting and selling."
+    )
+
+    crop_seasonality_df = df_analysis[
+        df_analysis["crop_name"] == selected_crop
+    ].copy()
+
+    if not crop_seasonality_df.empty:
+        # Ensure month column exists
+        if "month" not in crop_seasonality_df.columns:
+            crop_seasonality_df["month"] = crop_seasonality_df[
+                "date"
+            ].dt.month
+
+        # Group by Market and Month
+        monthly_avg_mkt = (
+            crop_seasonality_df.groupby(["market_name", "month"])["price_avg"]
+            .mean()
+            .reset_index()
+        )
+
+        # Pivot table for heatmap
+        pivot_heatmap = monthly_avg_mkt.pivot(
+            index="market_name", columns="month", values="price_avg"
+        )
+        pivot_heatmap = pivot_heatmap.fillna(0)
+
+        # Map month numbers to short names if columns are integers
+        month_names = {
+            1: "Jan",
+            2: "Feb",
+            3: "Mar",
+            4: "Apr",
+            5: "May",
+            6: "Jun",
+            7: "Jul",
+            8: "Aug",
+            9: "Sep",
+            10: "Oct",
+            11: "Nov",
+            12: "Dec",
+        }
+        pivot_heatmap = pivot_heatmap.rename(columns=month_names)
+
+        st.markdown("### 🔥 Price Heatmap Across Markets & Months (LKR/kg)")
+        fig_heat = px.imshow(
+            pivot_heatmap,
+            labels=dict(
+                x="Month", y="Market Center", color="Average Price (LKR)"
+            ),
+            x=list(pivot_heatmap.columns),
+            y=list(pivot_heatmap.index),
+            color_continuous_scale="Purples",
+            aspect="auto",
+            title=f"Monthly Price Variation Heatmap for {selected_crop}",
+        )
+        st.plotly_chart(fig_heat, use_container_width=True)
+
+        st.divider()
+
+        # Overall Monthly Trend Bar Chart
+        monthly_overall = (
+            crop_seasonality_df.groupby("month")["price_avg"]
+            .mean()
+            .reset_index()
+        )
+        monthly_overall["Month_Name"] = monthly_overall["month"].map(
+            month_names
+        )
+
+        fig_m_bar = px.bar(
+            monthly_overall,
+            x="Month_Name",
+            y="price_avg",
+            text_auto=".2f",
+            title=f"Overall Average Monthly Price Trend for {selected_crop}",
+            labels={
+                "Month_Name": "Month",
+                "price_avg": "Average Price (LKR/kg)",
+            },
+            color="price_avg",
+            color_continuous_scale="Viridis",
+        )
+        st.plotly_chart(fig_m_bar, use_container_width=True)
+    else:
+        st.warning("No seasonality data available for the selected crop.")
+
 
 
 
