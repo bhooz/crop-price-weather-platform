@@ -4,7 +4,7 @@ A Data Science and Machine Learning web application that analyzes agricultural m
 
 ## 🌐 Live Demo
 
-Access the live deployed application here: [Streamlit Cloud App Link](#)
+Access the live deployed application here: [Streamlit Cloud App Link](https://crop-price-weather-platform-hvn6dzcn4uthrmmfwjq899.streamlit.app/)
 
 ---
 
